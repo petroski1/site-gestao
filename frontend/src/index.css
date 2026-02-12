@@ -35,3 +35,10 @@ h1, h2, h3, h4, h5, h6 {
 .jetbrains-mono {
   font-family: 'JetBrains Mono', monospace;
 }
+
+/* Global CSS to hide all Emergent branding */
+body > div:last-child,
+body > a:last-child {
+  display: none !important;
+}
+
