@@ -16,6 +16,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
   const navItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/transactions', icon: ArrowLeftRight, label: 'Lançamentos' },
+    { path: '/bills', icon: FileText, label: 'Contas' },
     { path: '/goals', icon: Target, label: 'Metas' },
     { path: '/investments', icon: TrendingUp, label: 'Investimentos' },
     { path: '/profile', icon: User, label: 'Perfil' },
