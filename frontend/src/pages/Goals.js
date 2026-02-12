@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../utils/api';
 import { Plus, Trash2, Edit2 } from 'lucide-react';
@@ -19,11 +19,7 @@ const Goals = () => {
   const [updateValue, setUpdateValue] = useState('');
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
-  useEffect(() => {
-    fetchGoals();
-  }, []);
-
-  const fetchGoals = async () => {
+  const fetchGoals = useCallback(async () => {
     try {
       const response = await api.get('/goals');
       setGoals(response.data);
@@ -32,7 +28,11 @@ const Goals = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchGoals();
+  }, [fetchGoals]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
