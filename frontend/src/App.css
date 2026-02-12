@@ -59,3 +59,19 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #6244C5;
 }
+
+/* Hide Emergent badges and branding */
+a[href*="emergent.dev"], 
+iframe[src*="emergent.dev"],
+div[style*="Edit with emergent"],
+.emergent-badge,
+a[href*="emergentagent.com"],
+div[class*="emergent"],
+[data-emergent] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  z-index: -9999 !important;
+}
