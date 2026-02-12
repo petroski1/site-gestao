@@ -341,6 +341,7 @@ async def export_to_xlsx(current_user: dict = Depends(get_current_user)):
             transaction["data"],
             transaction["tipo"].upper(),
             transaction["categoria"],
+            transaction.get("subcategoria", ""),
             transaction["descricao"],
             transaction["valor"]
         ])
