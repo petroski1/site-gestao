@@ -54,6 +54,7 @@ class User(BaseModel):
 class TransactionCreate(BaseModel):
     tipo: str  # 'entrada' or 'saida'
     categoria: str
+    subcategoria: str
     valor: float
     descricao: str
     data: str
@@ -64,6 +65,7 @@ class Transaction(BaseModel):
     user_id: str
     tipo: str
     categoria: str
+    subcategoria: str
     valor: float
     descricao: str
     data: str
