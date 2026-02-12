@@ -1,34 +1,61 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+.App {
+  min-height: 100vh;
+  background-color: #0A0A0A;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.gradient-glow {
+  background: radial-gradient(circle at 50% 50%, rgba(127, 90, 240, 0.15), rgba(10, 10, 10, 0));
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.card-border-gradient {
+  background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%);
 }
 
-.App-link {
-    color: #61dafb;
+.neon-glow {
+  box-shadow: 0 0 20px rgba(127, 90, 240, 0.2);
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.neon-glow-green {
+  box-shadow: 0 0 20px rgba(44, 182, 125, 0.2);
+}
+
+.neon-glow-orange {
+  box-shadow: 0 0 20px rgba(255, 137, 6, 0.2);
+}
+
+.glassmorphism {
+  background: rgba(22, 22, 26, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hover-lift {
+  transition: transform 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+.button-press:active {
+  transform: scale(0.95);
+  transition: transform 0.1s ease;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #16161A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #7F5AF0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6244C5;
 }

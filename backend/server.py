@@ -1,15 +1,20 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from typing import List, Optional
 import uuid
-from datetime import datetime, timezone
-
+from datetime import datetime, timezone, timedelta
+from passlib.context import CryptContext
+from jose import JWTError, jwt
+from openpyxl import Workbook
+from fastapi.responses import StreamingResponse
+import io
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -19,54 +24,336 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create the main app without a prefix
-app = FastAPI()
+# Security
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+SECRET_KEY = os.environ.get('JWT_SECRET', 'fincontrol-secret-key-change-in-production')
+ALGORITHM = "HS256"
+security = HTTPBearer()
 
-# Create a router with the /api prefix
+# Create the main app
+app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# Models
+class UserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class User(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    email: str
+    created_at: str
+
+class TransactionCreate(BaseModel):
+    tipo: str  # 'entrada' or 'saida'
+    categoria: str
+    valor: float
+    descricao: str
+    data: str
+
+class Transaction(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    user_id: str
+    tipo: str
+    categoria: str
+    valor: float
+    descricao: str
+    data: str
+    created_at: str
+
+class GoalCreate(BaseModel):
+    titulo: str
+    valor_alvo: float
+    prazo: str
+
+class GoalUpdate(BaseModel):
+    valor_atual: Optional[float] = None
+    titulo: Optional[str] = None
+    valor_alvo: Optional[float] = None
+    prazo: Optional[str] = None
+
+class Goal(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    user_id: str
+    titulo: str
+    valor_alvo: float
+    valor_atual: float
+    prazo: str
+    created_at: str
+
+class InvestmentTip(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    titulo: str
+    descricao: str
+    categoria: str
+    risco: str
+
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+
+class DashboardStats(BaseModel):
+    total_entradas: float
+    total_saidas: float
+    saldo: float
+    transacoes_recentes: int
+    metas_ativas: int
+
+# Helper functions
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(days=7)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if user is None:
+            raise HTTPException(status_code=401, detail="User not found")
+        return user
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+# Auth routes
+@api_router.post("/auth/register")
+async def register(user_data: UserCreate):
+    existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email já cadastrado")
     
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
+    user_id = str(uuid.uuid4())
+    user_doc = {
+        "id": user_id,
+        "name": user_data.name,
+        "email": user_data.email,
+        "password_hash": hash_password(user_data.password),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
     
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
+    await db.users.insert_one(user_doc)
     
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
+    token = create_access_token({"sub": user_id})
+    return {"token": token, "user": {"id": user_id, "name": user_data.name, "email": user_data.email}}
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
+@api_router.post("/auth/login")
+async def login(credentials: UserLogin):
+    user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
+    if not user or not verify_password(credentials.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Email ou senha incorretos")
     
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
+    token = create_access_token({"sub": user["id"]})
+    return {"token": token, "user": {"id": user["id"], "name": user["name"], "email": user["email"]}}
 
-# Include the router in the main app
+# Dashboard routes
+@api_router.get("/dashboard/stats", response_model=DashboardStats)
+async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
+    transactions = await db.transactions.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(10000)
+    goals = await db.goals.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(1000)
+    
+    total_entradas = sum(t["valor"] for t in transactions if t["tipo"] == "entrada")
+    total_saidas = sum(t["valor"] for t in transactions if t["tipo"] == "saida")
+    
+    return DashboardStats(
+        total_entradas=total_entradas,
+        total_saidas=total_saidas,
+        saldo=total_entradas - total_saidas,
+        transacoes_recentes=len(transactions),
+        metas_ativas=len(goals)
+    )
+
+# Transaction routes
+@api_router.get("/transactions", response_model=List[Transaction])
+async def get_transactions(current_user: dict = Depends(get_current_user)):
+    transactions = await db.transactions.find({"user_id": current_user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    return transactions
+
+@api_router.post("/transactions", response_model=Transaction)
+async def create_transaction(transaction: TransactionCreate, current_user: dict = Depends(get_current_user)):
+    transaction_id = str(uuid.uuid4())
+    transaction_doc = {
+        "id": transaction_id,
+        "user_id": current_user["id"],
+        **transaction.model_dump(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.transactions.insert_one(transaction_doc)
+    return Transaction(**transaction_doc)
+
+@api_router.delete("/transactions/{transaction_id}")
+async def delete_transaction(transaction_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.transactions.delete_one({"id": transaction_id, "user_id": current_user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+    return {"message": "Transação deletada com sucesso"}
+
+# Goal routes
+@api_router.get("/goals", response_model=List[Goal])
+async def get_goals(current_user: dict = Depends(get_current_user)):
+    goals = await db.goals.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(1000)
+    return goals
+
+@api_router.post("/goals", response_model=Goal)
+async def create_goal(goal: GoalCreate, current_user: dict = Depends(get_current_user)):
+    goal_id = str(uuid.uuid4())
+    goal_doc = {
+        "id": goal_id,
+        "user_id": current_user["id"],
+        **goal.model_dump(),
+        "valor_atual": 0.0,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.goals.insert_one(goal_doc)
+    return Goal(**goal_doc)
+
+@api_router.put("/goals/{goal_id}", response_model=Goal)
+async def update_goal(goal_id: str, goal_update: GoalUpdate, current_user: dict = Depends(get_current_user)):
+    existing_goal = await db.goals.find_one({"id": goal_id, "user_id": current_user["id"]}, {"_id": 0})
+    if not existing_goal:
+        raise HTTPException(status_code=404, detail="Meta não encontrada")
+    
+    update_data = {k: v for k, v in goal_update.model_dump().items() if v is not None}
+    if update_data:
+        await db.goals.update_one({"id": goal_id}, {"$set": update_data})
+    
+    updated_goal = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    return Goal(**updated_goal)
+
+@api_router.delete("/goals/{goal_id}")
+async def delete_goal(goal_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.goals.delete_one({"id": goal_id, "user_id": current_user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Meta não encontrada")
+    return {"message": "Meta deletada com sucesso"}
+
+# Investment tips routes
+@api_router.get("/investments/tips", response_model=List[InvestmentTip])
+async def get_investment_tips():
+    tips = [
+        InvestmentTip(
+            id="1",
+            titulo="Tesouro Selic",
+            descricao="Investimento de baixo risco atrelado à taxa Selic. Ideal para reserva de emergência e objetivos de curto prazo.",
+            categoria="Renda Fixa",
+            risco="Baixo"
+        ),
+        InvestmentTip(
+            id="2",
+            titulo="Fundos de Índice (ETFs)",
+            descricao="Diversificação automática com baixo custo. Acompanha índices como Ibovespa ou S&P 500.",
+            categoria="Renda Variável",
+            risco="Médio"
+        ),
+        InvestmentTip(
+            id="3",
+            titulo="CDB com liquidez diária",
+            descricao="Certificado de Depósito Bancário com possibilidade de resgate a qualquer momento. Protegido pelo FGC.",
+            categoria="Renda Fixa",
+            risco="Baixo"
+        ),
+        InvestmentTip(
+            id="4",
+            titulo="Fundos Imobiliários (FIIs)",
+            descricao="Invista em imóveis sem precisar comprar um. Receba rendimentos mensais e aproveite a valorização.",
+            categoria="Renda Variável",
+            risco="Médio-Alto"
+        ),
+        InvestmentTip(
+            id="5",
+            titulo="LCI/LCA",
+            descricao="Letras de crédito isentas de IR para pessoa física. Boa opção para médio prazo.",
+            categoria="Renda Fixa",
+            risco="Baixo"
+        ),
+        InvestmentTip(
+            id="6",
+            titulo="Ações de Dividendos",
+            descricao="Empresas sólidas que distribuem lucros regularmente. Estratégia de longo prazo com renda passiva.",
+            categoria="Renda Variável",
+            risco="Médio-Alto"
+        )
+    ]
+    return tips
+
+# Profile routes
+@api_router.get("/profile", response_model=User)
+async def get_profile(current_user: dict = Depends(get_current_user)):
+    return User(
+        id=current_user["id"],
+        name=current_user["name"],
+        email=current_user["email"],
+        created_at=current_user["created_at"]
+    )
+
+@api_router.put("/profile", response_model=User)
+async def update_profile(profile_update: ProfileUpdate, current_user: dict = Depends(get_current_user)):
+    update_data = {k: v for k, v in profile_update.model_dump().items() if v is not None}
+    if update_data:
+        await db.users.update_one({"id": current_user["id"]}, {"$set": update_data})
+    
+    updated_user = await db.users.find_one({"id": current_user["id"]}, {"_id": 0})
+    return User(
+        id=updated_user["id"],
+        name=updated_user["name"],
+        email=updated_user["email"],
+        created_at=updated_user["created_at"]
+    )
+
+# Export route
+@api_router.get("/export/xlsx")
+async def export_to_xlsx(current_user: dict = Depends(get_current_user)):
+    transactions = await db.transactions.find({"user_id": current_user["id"]}, {"_id": 0}).sort("data", -1).to_list(10000)
+    
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Transações"
+    
+    headers = ["Data", "Tipo", "Categoria", "Descrição", "Valor"]
+    ws.append(headers)
+    
+    for transaction in transactions:
+        ws.append([
+            transaction["data"],
+            transaction["tipo"].upper(),
+            transaction["categoria"],
+            transaction["descricao"],
+            transaction["valor"]
+        ])
+    
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=fincontrol_transacoes.xlsx"}
+    )
+
+# Include router
 app.include_router(api_router)
 
 app.add_middleware(
@@ -77,7 +364,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
