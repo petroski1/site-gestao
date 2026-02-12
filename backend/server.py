@@ -255,6 +255,19 @@ async def delete_transaction(transaction_id: str, current_user: dict = Depends(g
         raise HTTPException(status_code=404, detail="Transação não encontrada")
     return {"message": "Transação deletada com sucesso"}
 
+@api_router.put("/transactions/{transaction_id}", response_model=Transaction)
+async def update_transaction(transaction_id: str, transaction_update: TransactionUpdate, current_user: dict = Depends(get_current_user)):
+    existing = await db.transactions.find_one({"id": transaction_id, "user_id": current_user["id"]}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+    
+    update_data = {k: v for k, v in transaction_update.model_dump().items() if v is not None}
+    if update_data:
+        await db.transactions.update_one({"id": transaction_id}, {"$set": update_data})
+    
+    updated = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
+    return Transaction(**updated)
+
 # Goal routes
 @api_router.get("/goals", response_model=List[Goal])
 async def get_goals(current_user: dict = Depends(get_current_user)):
