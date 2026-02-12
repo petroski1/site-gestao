@@ -333,7 +333,7 @@ async def export_to_xlsx(current_user: dict = Depends(get_current_user)):
     ws = wb.active
     ws.title = "Transações"
     
-    headers = ["Data", "Tipo", "Categoria", "Descrição", "Valor"]
+    headers = ["Data", "Tipo", "Categoria", "Subcategoria", "Descrição", "Valor"]
     ws.append(headers)
     
     for transaction in transactions:
