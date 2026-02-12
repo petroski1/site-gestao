@@ -520,7 +520,10 @@ async def update_profile(profile_update: ProfileUpdate, current_user: dict = Dep
 # Export route
 @api_router.get("/export/xlsx")
 async def export_to_xlsx(current_user: dict = Depends(get_current_user)):
-    transactions = await db.transactions.find({"user_id": current_user["id"]}, {"_id": 0}).sort("data", -1).to_list(10000)
+    transactions = await db.transactions.find(
+        {"user_id": current_user["id"]}, 
+        {"_id": 0}
+    ).sort("data", -1).limit(5000).to_list(5000)
     
     wb = Workbook()
     ws = wb.active
