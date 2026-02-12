@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../utils/api';
 import { TrendingUp, AlertCircle } from 'lucide-react';
@@ -10,11 +10,7 @@ const Investments = () => {
   const [tips, setTips] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchTips();
-  }, []);
-
-  const fetchTips = async () => {
+  const fetchTips = useCallback(async () => {
     try {
       const response = await api.get('/investments/tips');
       setTips(response.data);
@@ -23,7 +19,11 @@ const Investments = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTips();
+  }, [fetchTips]);
 
   const getRiskColor = (risco) => {
     switch (risco.toLowerCase()) {
