@@ -1,0 +1,19 @@
+# Netlify configuration for FinControl Pro Frontend
+
+[build]
+  base = "frontend"
+  command = "yarn build"
+  publish = "build"
+
+[build.environment]
+  NODE_VERSION = "20"
+  YARN_VERSION = "1.22.22"
+
+# Redirect all requests to index.html for React Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Environment variables (configure these in Netlify dashboard)
+# REACT_APP_BACKEND_URL = your-backend-url
