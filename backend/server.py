@@ -219,6 +219,20 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     transactions = await db.transactions.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(10000)
     goals = await db.goals.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(1000)
     
+    # Get upcoming bills (next 7 days)
+    today = datetime.now(timezone.utc).date()
+    next_7_days = today + timedelta(days=7)
+    bills = await db.bills.find({
+        "user_id": current_user["id"],
+        "status": "pendente"
+    }, {"_id": 0}).to_list(1000)
+    
+    upcoming_bills = []
+    for bill in bills:
+        vencimento = datetime.fromisoformat(bill["vencimento"]).date()
+        if today <= vencimento <= next_7_days:
+            upcoming_bills.append(bill)
+    
     total_entradas = sum(t["valor"] for t in transactions if t["tipo"] == "entrada")
     total_saidas = sum(t["valor"] for t in transactions if t["tipo"] == "saida")
     
@@ -227,7 +241,8 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         total_saidas=total_saidas,
         saldo=total_entradas - total_saidas,
         transacoes_recentes=len(transactions),
-        metas_ativas=len(goals)
+        metas_ativas=len(goals),
+        contas_a_vencer=len(upcoming_bills)
     )
 
 # Transaction routes
