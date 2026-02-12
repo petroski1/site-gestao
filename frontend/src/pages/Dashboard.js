@@ -182,6 +182,7 @@ const Dashboard = () => {
                       <th className="text-left py-3 px-4 text-[#94A1B2] font-medium">Data</th>
                       <th className="text-left py-3 px-4 text-[#94A1B2] font-medium">Descrição</th>
                       <th className="text-left py-3 px-4 text-[#94A1B2] font-medium">Categoria</th>
+                      <th className="text-left py-3 px-4 text-[#94A1B2] font-medium">Local</th>
                       <th className="text-right py-3 px-4 text-[#94A1B2] font-medium">Valor</th>
                     </tr>
                   </thead>
@@ -194,6 +195,9 @@ const Dashboard = () => {
                           <span className="inline-block px-3 py-1 rounded-full text-sm bg-[#7F5AF0]/10 text-[#7F5AF0]">
                             {transaction.categoria}
                           </span>
+                        </td>
+                        <td className="py-3 px-4 text-[#94A1B2] text-sm">
+                          {transaction.subcategoria || '-'}
                         </td>
                         <td className={`py-3 px-4 text-right font-semibold jetbrains-mono ${
                           transaction.tipo === 'entrada' ? 'text-[#2CB67D]' : 'text-[#EF4565]'
