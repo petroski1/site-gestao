@@ -1,0 +1,139 @@
+{
+  "identity": {
+    "name": "FinControl Pro",
+    "archetype": "The Performance Pro",
+    "tone": "Precision, Empowerment, Clarity, Future-Ready",
+    "mission": "To provide professional-grade financial clarity in a personal package."
+  },
+  "typography": {
+    "headings": {
+      "family": "Manrope, sans-serif",
+      "weights": ["600", "700", "800"],
+      "usage": "Use for all page titles, section headers, and card titles. Letter spacing: tracking-tight (-0.02em)."
+    },
+    "body": {
+      "family": "Inter, sans-serif",
+      "weights": ["400", "500"],
+      "usage": "Use for all paragraph text, inputs, and data tables. Relaxed leading."
+    },
+    "mono": {
+      "family": "JetBrains Mono, monospace",
+      "usage": "Use for financial figures in tables or sensitive data display."
+    }
+  },
+  "colors": {
+    "theme": "dark",
+    "palette": {
+      "background": {
+        "default": "#0A0A0A",
+        "paper": "#16161A",
+        "subtle": "#242629"
+      },
+      "text": {
+        "primary": "#FFFFFE",
+        "secondary": "#94A1B2",
+        "muted": "#72757E"
+      },
+      "brand": {
+        "primary": "#7F5AF0",
+        "primary_hover": "#6244C5",
+        "secondary": "#2CB67D",
+        "accent": "#FF8906"
+      },
+      "functional": {
+        "success": "#2CB67D",
+        "warning": "#FF8906",
+        "error": "#EF4565",
+        "info": "#3DA9FC"
+      }
+    },
+    "gradients": {
+      "hero_glow": "radial-gradient(circle at 50% 50%, rgba(127, 90, 240, 0.15), rgba(10, 10, 10, 0))",
+      "card_border": "linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%)"
+    }
+  },
+  "layout": {
+    "spacing_scale": ["0", "4px", "8px", "16px", "24px", "32px", "48px", "64px", "96px", "128px"],
+    "container": {
+      "max_width": "1280px",
+      "padding": "24px"
+    },
+    "grid_system": {
+      "dashboard": "grid grid-cols-1 md:grid-cols-12 gap-6",
+      "landing_features": "grid grid-cols-1 md:grid-cols-3 gap-8"
+    },
+    "bento_grid": {
+      "hero_widget": "col-span-12 md:col-span-8 row-span-2",
+      "stat_widget": "col-span-6 md:col-span-4 row-span-1",
+      "list_widget": "col-span-12 md:col-span-4 row-span-2"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#7F5AF0] text-white hover:bg-[#6244C5] rounded-lg font-medium px-6 py-3 transition-all shadow-[0_0_15px_rgba(127,90,240,0.3)] hover:shadow-[0_0_25px_rgba(127,90,240,0.5)]",
+      "secondary": "bg-transparent border border-[#7F5AF0] text-[#7F5AF0] hover:bg-[#7F5AF0]/10 rounded-lg font-medium px-6 py-3 transition-all",
+      "ghost": "text-[#94A1B2] hover:text-white hover:bg-white/5 rounded-lg px-4 py-2 transition-all"
+    },
+    "cards": {
+      "style": "bg-[#16161A] border border-white/5 rounded-xl shadow-xl backdrop-blur-sm",
+      "hover": "hover:border-[#7F5AF0]/30 transition-colors duration-300"
+    },
+    "inputs": {
+      "style": "bg-[#242629] border-white/10 text-white focus:border-[#7F5AF0] focus:ring-1 focus:ring-[#7F5AF0] rounded-lg h-12"
+    },
+    "charts": {
+      "library": "recharts",
+      "style": "Use transparent backgrounds. Grid lines: stroke='#94A1B2' strokeOpacity={0.1}. Tooltip: contentStyle={{backgroundColor: '#16161A', borderColor: '#2CB67D'}}"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "bg-[#16161A]/80 backdrop-blur-md border border-white/10",
+    "neon_glow": "box-shadow: 0 0 20px rgba(127, 90, 240, 0.2)",
+    "micro_interactions": {
+      "hover_lift": "hover:-translate-y-1 transition-transform duration-200",
+      "button_press": "active:scale-95 transition-transform duration-100"
+    }
+  },
+  "images": {
+    "hero_background": {
+      "url": "https://images.unsplash.com/photo-1647067517631-aa36cda58a17?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODF8MHwxfHNlYXJjaHwzfHxmdXR1cmlzdGljJTIwZmluYW5jaWFsJTIwZGF0YSUyMHZpc3VhbGl6YXRpb24lMjBkYXJrJTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3NzA4NTg5NDR8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Futuristic Financial Data Visualization",
+      "usage": "Hero section background with heavy dark overlay (opacity 80-90%)"
+    },
+    "feature_analytics": {
+      "url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODF8MHwxfHNlYXJjaHwxfHxmdXR1cmlzdGljJTIwZmluYW5jaWFsJTIwZGF0YSUyMHZpc3VhbGl6YXRpb24lMjBkYXJrJTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3NzA4NTg5NDR8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Performance Analytics Graphs",
+      "usage": "Feature section showcasing analytics capabilities"
+    },
+    "testimonial_user": {
+      "url": "https://images.unsplash.com/photo-1729856608294-8a418177e570?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHw0fHxoYXBweSUyMHBlcnNvbiUyMHVzaW5nJTIwcGhvbmUlMjBmb3IlMjBmaW5hbmNlJTIwbmlnaHQlMjBjaXR5fGVufDB8fHx8MTc3MDg1ODk0NXww&ixlib=rb-4.1.0&q=85",
+      "alt": "Happy User with Phone",
+      "usage": "Testimonial or 'Access Anywhere' section"
+    },
+    "investment_concept": {
+      "url": "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwyfHxpbnZlc3RtZW50JTIwZ3Jvd3RoJTIwcGxhbnQlMjBjb2luJTIwY29uY2VwdHxlbnwwfHx8fDE3NzA4NTg5NDZ8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Investment Growth",
+      "usage": "Investment tips card or section background"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Install 'lucide-react' for icons if not present.",
+    "Install 'recharts' for charts.",
+    "Use 'framer-motion' for simple entrance animations if possible, otherwise CSS transitions.",
+    "Ensure all text has sufficient contrast against the dark background.",
+    "For the Landing Page: Focus on the value proposition (R$ 37,90/month) and visual appeal.",
+    "For the Dashboard: Prioritize data legibility. Use the Bento Grid layout defined in layout.bento_grid.",
+    "For Export: Implement a button that triggers a CSV/Excel download (mock function is fine for UI).",
+    "Auth Pages: Keep them clean, centered box on a dark, subtle animated background.",
+    "THEME: FORCE DARK MODE. Do not implement a light mode toggle unless necessary for accessibility, but default to DARK.",
+    "Use standard HTML <input type='date'> for date pickers if Shadcn calendar is too complex to integrate quickly, but style it to match the dark theme.",
+    "Data-Test-ID: Add 'data-testid' to all interactive elements."
+  ],
+  "universal_guidelines": [
+    "Do not use gradients for text unless it's a very large headline.",
+    "Avoid pure black (#000000). Use #0A0A0A or #16161A.",
+    "Buttons should have a subtle glow on hover.",
+    "Cards must have a 1px border that is slightly lighter than the background to define edges.",
+    "Use generous padding (p-6, p-8) inside cards."
+  ]
+}
