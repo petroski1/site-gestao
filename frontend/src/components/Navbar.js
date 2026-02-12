@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, ArrowLeftRight, Target, TrendingUp, User, LogOut, Menu } from 'lucide-react';
+import { LayoutDashboard, ArrowLeftRight, Target, TrendingUp, User, LogOut, Menu, FileText } from 'lucide-react';
 
 const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
   const { logout } = useAuth();
