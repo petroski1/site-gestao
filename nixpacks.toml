@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ["nodejs", "python311", "yarn"]
+
+[phases.install]
+cmds = [
+  "cd frontend && yarn install",
+  "cd backend && pip install -r requirements.txt"
+]
+
+[phases.build]
+cmds = [
+  "cd frontend && yarn build",
+  "chmod +x start.sh"
+]
+
+[start]
+cmd = "./start.sh"
