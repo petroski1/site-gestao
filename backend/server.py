@@ -357,6 +357,117 @@ async def get_investment_tips():
     ]
     return tips
 
+# Bills routes
+@api_router.get("/bills", response_model=List[Bill])
+async def get_bills(current_user: dict = Depends(get_current_user), status: Optional[str] = None):
+    query = {"user_id": current_user["id"]}
+    if status:
+        query["status"] = status
+    
+    bills = await db.bills.find(query, {"_id": 0}).sort("vencimento", 1).to_list(1000)
+    
+    # Auto-update status based on vencimento
+    today = datetime.now(timezone.utc).date()
+    for bill in bills:
+        if bill["status"] == "pendente":
+            vencimento = datetime.fromisoformat(bill["vencimento"]).date()
+            if vencimento < today:
+                bill["status"] = "atrasado"
+                await db.bills.update_one({"id": bill["id"]}, {"$set": {"status": "atrasado"}})
+    
+    return bills
+
+@api_router.post("/bills", response_model=Bill)
+async def create_bill(bill: BillCreate, current_user: dict = Depends(get_current_user)):
+    bill_id = str(uuid.uuid4())
+    bill_doc = {
+        "id": bill_id,
+        "user_id": current_user["id"],
+        **bill.model_dump(),
+        "status": "pendente",
+        "data_pagamento": None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.bills.insert_one(bill_doc)
+    return Bill(**bill_doc)
+
+@api_router.put("/bills/{bill_id}", response_model=Bill)
+async def update_bill(bill_id: str, bill_update: BillUpdate, current_user: dict = Depends(get_current_user)):
+    existing = await db.bills.find_one({"id": bill_id, "user_id": current_user["id"]}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Conta não encontrada")
+    
+    update_data = {k: v for k, v in bill_update.model_dump().items() if v is not None}
+    
+    # If marking as paid, set payment date
+    if update_data.get("status") == "pago" and not update_data.get("data_pagamento"):
+        update_data["data_pagamento"] = datetime.now(timezone.utc).isoformat()
+    
+    if update_data:
+        await db.bills.update_one({"id": bill_id}, {"$set": update_data})
+    
+    updated = await db.bills.find_one({"id": bill_id}, {"_id": 0})
+    return Bill(**updated)
+
+@api_router.delete("/bills/{bill_id}")
+async def delete_bill(bill_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.bills.delete_one({"id": bill_id, "user_id": current_user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Conta não encontrada")
+    return {"message": "Conta deletada com sucesso"}
+
+# Analytics routes
+@api_router.get("/analytics/category-breakdown")
+async def get_category_breakdown(current_user: dict = Depends(get_current_user)):
+    transactions = await db.transactions.find({"user_id": current_user["id"], "tipo": "saida"}, {"_id": 0}).to_list(10000)
+    
+    category_totals = {}
+    for t in transactions:
+        cat = t["categoria"]
+        category_totals[cat] = category_totals.get(cat, 0) + t["valor"]
+    
+    return [{"categoria": k, "total": v} for k, v in category_totals.items()]
+
+@api_router.get("/analytics/monthly-comparison")
+async def get_monthly_comparison(current_user: dict = Depends(get_current_user)):
+    transactions = await db.transactions.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(10000)
+    
+    monthly_data = {}
+    for t in transactions:
+        month = t["data"][:7]  # YYYY-MM
+        if month not in monthly_data:
+            monthly_data[month] = {"month": month, "entradas": 0, "saidas": 0}
+        
+        if t["tipo"] == "entrada":
+            monthly_data[month]["entradas"] += t["valor"]
+        else:
+            monthly_data[month]["saidas"] += t["valor"]
+    
+    result = sorted(monthly_data.values(), key=lambda x: x["month"])
+    for item in result:
+        item["saldo"] = item["entradas"] - item["saidas"]
+    
+    return result
+
+@api_router.get("/analytics/upcoming-bills")
+async def get_upcoming_bills(current_user: dict = Depends(get_current_user)):
+    today = datetime.now(timezone.utc).date()
+    next_7_days = today + timedelta(days=7)
+    
+    bills = await db.bills.find({
+        "user_id": current_user["id"],
+        "status": "pendente"
+    }, {"_id": 0}).to_list(1000)
+    
+    upcoming = []
+    for bill in bills:
+        vencimento = datetime.fromisoformat(bill["vencimento"]).date()
+        if today <= vencimento <= next_7_days:
+            upcoming.append(bill)
+    
+    return sorted(upcoming, key=lambda x: x["vencimento"])
+
 # Profile routes
 @api_router.get("/profile", response_model=User)
 async def get_profile(current_user: dict = Depends(get_current_user)):
