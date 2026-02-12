@@ -153,6 +153,7 @@ class DashboardStats(BaseModel):
     saldo: float
     transacoes_recentes: int
     metas_ativas: int
+    contas_a_vencer: int
 
 # Helper functions
 def hash_password(password: str) -> str:
