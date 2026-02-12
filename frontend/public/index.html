@@ -9,10 +9,60 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
         <title>FinControl Pro | Gestão Financeira Pessoal</title>
+        
+        <style>
+            /* Aggressive badge hiding */
+            #emergent-badge,
+            a[href*="emergent"],
+            a[id*="emergent"],
+            div[style*="Made with"],
+            a[style*="z-index: 9999"] {
+                display: none !important;
+                opacity: 0 !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+                position: absolute !important;
+                left: -9999px !important;
+                width: 0 !important;
+                height: 0 !important;
+            }
+        </style>
+        
+        <script>
+            // Remove badges immediately - runs before page loads
+            (function() {
+                const removeBadge = () => {
+                    const badge = document.getElementById('emergent-badge');
+                    if (badge) badge.remove();
+                    
+                    document.querySelectorAll('a[href*="emergent"]').forEach(el => el.remove());
+                    document.querySelectorAll('a[style*="z-index: 9999"]').forEach(el => el.remove());
+                };
+                
+                // Run immediately
+                setInterval(removeBadge, 100);
+                
+                // Run on DOM changes
+                if (typeof MutationObserver !== 'undefined') {
+                    const observer = new MutationObserver(removeBadge);
+                    const startObserving = () => {
+                        if (document.body) {
+                            observer.observe(document.body, { childList: true, subtree: true });
+                        } else {
+                            setTimeout(startObserving, 10);
+                        }
+                    };
+                    startObserving();
+                }
+                
+                // Run on events
+                document.addEventListener('DOMContentLoaded', removeBadge);
+                window.addEventListener('load', removeBadge);
+            })();
+        </script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
         <div id="root"></div>
-        <script src="%PUBLIC_URL%/remove-badges.js"></script>
     </body>
 </html>
