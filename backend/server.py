@@ -216,8 +216,11 @@ async def login(credentials: UserLogin):
 # Dashboard routes
 @api_router.get("/dashboard/stats", response_model=DashboardStats)
 async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
-    transactions = await db.transactions.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(10000)
-    goals = await db.goals.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(1000)
+    transactions = await db.transactions.find(
+        {"user_id": current_user["id"]}, 
+        {"_id": 0, "valor": 1, "tipo": 1}
+    ).to_list(5000)
+    goals = await db.goals.find({"user_id": current_user["id"]}, {"_id": 0, "id": 1}).to_list(1000)
     
     # Get upcoming bills (next 7 days)
     today = datetime.now(timezone.utc).date()
