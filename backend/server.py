@@ -453,7 +453,10 @@ async def get_category_breakdown(current_user: dict = Depends(get_current_user))
 
 @api_router.get("/analytics/monthly-comparison")
 async def get_monthly_comparison(current_user: dict = Depends(get_current_user)):
-    transactions = await db.transactions.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(10000)
+    transactions = await db.transactions.find(
+        {"user_id": current_user["id"]}, 
+        {"_id": 0, "data": 1, "tipo": 1, "valor": 1}
+    ).to_list(5000)
     
     monthly_data = {}
     for t in transactions:
