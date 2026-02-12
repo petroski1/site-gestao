@@ -58,6 +58,18 @@ class TransactionCreate(BaseModel):
     valor: float
     descricao: str
     data: str
+    payment_method: Optional[str] = None  # 'dinheiro', 'credito', 'debito', 'pix'
+    is_paid: bool = True
+
+class TransactionUpdate(BaseModel):
+    tipo: Optional[str] = None
+    categoria: Optional[str] = None
+    subcategoria: Optional[str] = None
+    valor: Optional[float] = None
+    descricao: Optional[str] = None
+    data: Optional[str] = None
+    payment_method: Optional[str] = None
+    is_paid: Optional[bool] = None
 
 class Transaction(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -69,6 +81,38 @@ class Transaction(BaseModel):
     valor: float
     descricao: str
     data: str
+    payment_method: Optional[str] = None
+    is_paid: bool = True
+    created_at: str
+
+class BillCreate(BaseModel):
+    tipo: str  # 'a_pagar' or 'a_receber'
+    titulo: str
+    valor: float
+    vencimento: str
+    categoria: str
+    subcategoria: Optional[str] = None
+    recorrencia: Optional[str] = None  # None, 'mensal', 'anual'
+    observacoes: Optional[str] = None
+
+class BillUpdate(BaseModel):
+    status: Optional[str] = None  # 'pendente', 'pago', 'atrasado'
+    data_pagamento: Optional[str] = None
+
+class Bill(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    user_id: str
+    tipo: str
+    titulo: str
+    valor: float
+    vencimento: str
+    categoria: str
+    subcategoria: Optional[str] = None
+    status: str  # 'pendente', 'pago', 'atrasado'
+    recorrencia: Optional[str] = None
+    observacoes: Optional[str] = None
+    data_pagamento: Optional[str] = None
     created_at: str
 
 class GoalCreate(BaseModel):
