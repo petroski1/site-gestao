@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../utils/api';
 import { Plus, Trash2, Download, Filter } from 'lucide-react';
@@ -40,11 +40,7 @@ const Transactions = () => {
     }
   };
 
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       const response = await api.get('/transactions');
       setTransactions(response.data);
@@ -53,7 +49,11 @@ const Transactions = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
