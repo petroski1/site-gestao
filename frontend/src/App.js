@@ -12,6 +12,7 @@ import Transactions from './pages/Transactions';
 import Goals from './pages/Goals';
 import Investments from './pages/Investments';
 import Profile from './pages/Profile';
+import Bills from './pages/Bills';
 
 function App() {
   return (
