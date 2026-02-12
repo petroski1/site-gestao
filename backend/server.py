@@ -439,7 +439,10 @@ async def delete_bill(bill_id: str, current_user: dict = Depends(get_current_use
 # Analytics routes
 @api_router.get("/analytics/category-breakdown")
 async def get_category_breakdown(current_user: dict = Depends(get_current_user)):
-    transactions = await db.transactions.find({"user_id": current_user["id"], "tipo": "saida"}, {"_id": 0}).to_list(10000)
+    transactions = await db.transactions.find(
+        {"user_id": current_user["id"], "tipo": "saida"}, 
+        {"_id": 0, "categoria": 1, "valor": 1}
+    ).to_list(5000)
     
     category_totals = {}
     for t in transactions:
