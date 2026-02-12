@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../utils/api';
 import { Plus, Trash2, Check, Clock, AlertTriangle } from 'lucide-react';
@@ -25,11 +25,7 @@ const Bills = () => {
   const categorias = ['Moradia', 'Transporte', 'Saúde', 'Educação', 'Contas', 'Outros'];
   const recorrenciaOptions = ['', 'mensal', 'anual'];
 
-  useEffect(() => {
-    fetchBills();
-  }, [filter]);
-
-  const fetchBills = async () => {
+  const fetchBills = useCallback(async () => {
     try {
       const params = filter !== 'all' ? { status: filter } : {};
       const response = await api.get('/bills', { params });
@@ -39,7 +35,11 @@ const Bills = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchBills();
+  }, [fetchBills]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
