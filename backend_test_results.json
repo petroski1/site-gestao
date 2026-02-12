@@ -1,0 +1,93 @@
+{
+  "summary": {
+    "tests_run": 14,
+    "tests_passed": 13,
+    "success_rate": 92.85714285714286
+  },
+  "results": [
+    {
+      "test": "User Registration",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Dashboard Stats",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Create Transaction (Entrada)",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Create Transaction (Sa\u00edda)",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Get Transactions",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Delete Transaction",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Create Goal",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Update Goal Progress",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Get Goals",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Delete Goal",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Get Investment Tips",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Get Profile",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Update Profile",
+      "success": true,
+      "status_code": 200,
+      "details": ""
+    },
+    {
+      "test": "Excel Export",
+      "success": false,
+      "status_code": 200,
+      "details": ""
+    }
+  ]
+}
